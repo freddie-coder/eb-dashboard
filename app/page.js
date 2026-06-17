@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 
 const FY_START = new Date('2026-06-01');
 const FY_END = new Date('2027-05-31');
-const EB_TARGET = 2568205;
+const EB_TARGET = 2600000;
 const ACCRUED_TARGET = 968205;
+const EB_STILL_NEEDED = EB_TARGET - ACCRUED_TARGET; // £1.632m
 
 const WON_STAGES = new Set(['991972440', '1232737356', '1232737357']);
 const LIVE_STAGES = new Set(['1232737356', '1232737357']); // Live/In Progress + Complete
@@ -112,7 +113,7 @@ export default function Dashboard() {
 
   const wonTotal = wonDeals.reduce((s, d) => s + (parseFloat(d.properties.amount) || 0), 0);
   const pipeTotal = pipelineDeals.reduce((s, d) => s + (parseFloat(d.properties.amount) || 0), 0);
-  const remaining = Math.max(0, EB_TARGET - wonTotal);
+  const remaining = Math.max(0, EB_STILL_NEEDED - wonTotal);
 
   // Group by brand
   const brandMap = {};
@@ -215,7 +216,7 @@ export default function Dashboard() {
           <div style={s.card}>
             <div style={s.cardLabel}>EB revenue this FY</div>
             <div style={s.cardValue}>{fmtK(wonTotal)}</div>
-            <div style={{ marginTop: 12 }}><RAGBar current={wonTotal} target={EB_TARGET} /></div>
+            <div style={{ marginTop: 12 }}><RAGBar current={wonTotal + ACCRUED_TARGET} target={EB_TARGET} /></div>
           </div>
           <div style={s.card}>
             <div style={s.cardLabel}>Accrued / confirmed</div>
@@ -225,7 +226,7 @@ export default function Dashboard() {
           <div style={s.card}>
             <div style={s.cardLabel}>Still to generate</div>
             <div style={s.cardValue}>{fmtK(remaining)}</div>
-            <div style={s.cardSub}>to hit {fmtK(EB_TARGET)} target</div>
+            <div style={s.cardSub}>to hit £1.63m still needed</div>
           </div>
           <div style={s.card}>
             <div style={s.cardLabel}>EB pipeline</div>
