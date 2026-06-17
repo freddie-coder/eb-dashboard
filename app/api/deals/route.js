@@ -6,15 +6,18 @@ export async function GET() {
 
   const extractBrandFromName = (dealName) => {
     const name = clean(dealName || '');
-    const separator = name.includes(' - ') ? ' - ' : name.includes(' - ') ? ' - ' : name.includes(': ') ? ': ' : null;
-    if (separator) return name.split(separator)[0].trim();
-    return 'Unassigned';
+    // Try common separators: ' - ', ' – ', ' | ', ': '
+    const separators = [' - ', ' \u2013 ', ' | ', ': '];
+    for (const sep of separators) {
+      if (name.includes(sep)) return name.split(sep)[0].trim();
+    }
+    return name; // return full name if no separator found
   };
 
   try {
-    // Step 1: fetch all EB deals in FY
     let allDeals = [];
     let after = undefined;
+
     while (true) {
       const body = {
         filterGroups: [{
@@ -24,10 +27,11 @@ export async function GET() {
             { propertyName: 'closedate', operator: 'LTE', value: new Date('2027-05-31').getTime().toString() },
           ],
         }],
-        properties: ['dealname', 'amount', 'dealstage', 'dealtype', 'closedate'],
+        properties: ['dealname', 'amount', 'dealstage', 'dealtype', 'closedate', 'pipeline'],
         limit: 100,
         ...(after ? { after } : {}),
       };
+
       const res = await fetch('https://api.hubapi.com/crm/v3/objects/deals/search', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -39,7 +43,7 @@ export async function GET() {
       if (data.paging?.next?.after) { after = data.paging.next.after; } else { break; }
     }
 
-    // Step 2: for each deal, fetch company association, fall back to deal name parsing
+    // For each deal fetch company association, fall back to deal name parsing
     const dealsWithCompany = await Promise.all(allDeals.map(async (deal) => {
       const cleanDealName = clean(deal.properties.dealname);
       let companyName = extractBrandFromName(deal.properties.dealname);
