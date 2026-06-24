@@ -77,7 +77,7 @@ export async function GET() {
       };
     }));
 
-    return Response.json({ deals: dealsWithCompany });
+    return Response.json({ deals: dealsWithCompany }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }

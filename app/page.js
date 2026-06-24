@@ -91,7 +91,7 @@ export default function Dashboard() {
   const fetchData = async () => {
     setLoading(true); setError(null);
     try {
-      const res = await fetch('/api/deals');
+      const res = await fetch('/api/deals?t=' + Date.now(), { cache: 'no-store' });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setDeals(data.deals || []);
